@@ -2,27 +2,29 @@ using UnityEngine;
 
 public class Cell : MonoBehaviour
 {
-    [SerializeField]Transform backg;
+    [SerializeField] private Transform backg;
 
-    [SerializeField] int neuronNumbers, nNodes;
-    string[] sensors = { "px", "py", "rn", "tm", "bx" };
-    string[] nodes = { "n0", "n1", "n2" };
-    string[] actions = { "mn", "ms", "me", "mw", "dm" };
+    [SerializeField] private int neuronNumbers, nNodes;
+    private string[] sensors = { "px", "py", "rn", "tm", "bx" };        //input neurons
+    private string[] nodes = { "n0", "n1", "n2" };                      //middle neurons
+    private string[] actions = { "mn", "ms", "me", "mw", "dm" };        //output neurons
 
-    [SerializeField] float[] weights0;
-    /**/
-    [SerializeField] float[] ns;
-    /**/
-    [SerializeField] float[] weights1;
-    /**/
-    [SerializeField] float[] outputs;
-
+    [SerializeField] private float[] weights0;
+    [SerializeField] private float[] ns;
+    [SerializeField] private float[] weights1;
+    [SerializeField] private float[] outputs;
     [SerializeField] public string[] genome;    //CONTAINING GENS OF LONGITUDE 3*CONEXIONS
-    float speedx = 0, speedy = 0;
+
+    private float speedx = 0, speedy = 0;
     public bool child = false;
 
+    //For newly generated cells, we generate a genome from scratch, then decode it for interpreting
+    //actions. If the cell is a copy from previously existing cell, we only mutate the
+    //copied genome and decode it
 
-    // Start is called before the first frame update
+
+
+
     void Awake()
     {
         genome = new string[neuronNumbers];
@@ -33,20 +35,20 @@ public class Cell : MonoBehaviour
         backg = GameObject.FindGameObjectsWithTag("backgr")[0].transform;   //ONLY WORKS WITH ONE BACKGR
 
     }
+
     void Start()
     {
         if (!child)
-        {
             encodeGen(genome);
-        }
 
         decodeGen(genome);
-
     }
 
     // Update is called once per frame
     void Update()
     {
+        //limit position of cell on the map
+
         if (transform.position.x < backg.localScale.x / 2 - 1 && transform.position.x > -backg.localScale.x / 2 + 1)
             transform.Translate(speedx * Time.deltaTime, 0, 0);
 
@@ -56,9 +58,10 @@ public class Cell : MonoBehaviour
     }
 
 
-    public void encodeGen(string[] genome)
+    public void encodeGen(string[] genome)  //generate genome from scratch
     {
-        for (int i = 0; i < genome.Length; i++)     //number of neurons
+        //genome is divided into input, middle and output neurons
+        for (int i = 0; i < genome.Length; i++)
         {
             genome[i] += sensors[Random.Range(0, sensors.Length)];
             genome[i] += nodes[Random.Range(0, nodes.Length)];
@@ -71,9 +74,7 @@ public class Cell : MonoBehaviour
         genome = gen;
         for (int i = 0; i < gen.Length; i++)
         {
-            //Debug.Log(gameObject.name+" "+gen[0]);
             makeFirstConexions(gen[i], i);
-
         }
 
         for (int i = 0; i < gen.Length; i++)
@@ -93,8 +94,9 @@ public class Cell : MonoBehaviour
         }
     }
 
-    void makeFirstConexions(string gen, int j)      // gen = gen sequence       j = number of gen sequence
+    void makeFirstConexions(string gen, int j)    //read the input neurons  
     {
+        // gen = gen sequence       j = number of gen sequence
 
         string x = "";
         x += gen[0];
@@ -135,13 +137,13 @@ public class Cell : MonoBehaviour
         string x = "";
         x += gen[3];
 
-        switch (x)       //INPUTS
+        switch (x)       //MIDDLE NEURONS
         {
             default: break;
 
             case "0":
-                ns[int.Parse(x)] += weights0[j];
                 GetComponent<SpriteRenderer>().color += new Color(10, 0, 0);
+                ns[int.Parse(x)] += weights0[j];
                 break;
 
             case "1":
@@ -158,7 +160,18 @@ public class Cell : MonoBehaviour
 
     }
 
-    void getOutputs(string gen, int j)
+    void ConexionsOutputs(string gen, int j)
+    {
+        string x = "";
+        x += gen[3];        //position of middle neuron
+
+        weights1[j] += Random.Range(-4.0f, 4.0f);
+        //calculate final weight to be send to output neurons
+        outputs[j] = (float)System.Math.Tanh(weights1[j] * ns[int.Parse(x)]);
+
+    }
+
+    void getOutputs(string gen, int j)      //interpret output neurons to world actions
     {
         string x = "";       //node
 
@@ -166,7 +179,7 @@ public class Cell : MonoBehaviour
         x += gen[5];
 
         if (outputs[j] > 0.5f)
-            switch (x)       //INPUTS
+            switch (x)       //OUTPUTS
             {
                 default:
                     outputs[j] = 0;
@@ -204,15 +217,7 @@ public class Cell : MonoBehaviour
 
 
     }
-    void ConexionsOutputs(string gen, int j)
-    {
-        string x = "";
-        x += gen[3];        //node
-
-        weights1[j] += Random.Range(-4.0f, 4.0f);
-        outputs[j] = (float)System.Math.Tanh(weights1[j] * ns[int.Parse(x)]);
-
-    }
+    
 
 
 }

@@ -55,7 +55,7 @@ public class UI_Manager : MonoBehaviour
         {
             butt.text = "RESET";
             canvas.gameObject.SetActive(false);
-            spawner.spawnShit();
+            spawner.spawnThem();
         }
     }
 

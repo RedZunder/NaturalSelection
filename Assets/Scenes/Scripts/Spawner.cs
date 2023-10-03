@@ -4,19 +4,19 @@ using UnityEngine.UI;
 
 public class Spawner : MonoBehaviour
 {
-    [SerializeField] Transform background;
-    [SerializeField] GameObject prefab;
-    [SerializeField] Slider TimeSpeed;
+    [SerializeField] private Transform background;
+    [SerializeField] private GameObject prefab;
+    [SerializeField] private Slider TimeSpeed;
     [HideInInspector] public static List<GameObject> creatures = new List<GameObject>();
     public static int cellsNumber;
-    int d;
+    private int d;
 
     void Start()
     {
         cellsNumber = 10 * d;
         creatures.Clear();
     }
-    public void spawnShit()
+    public void spawnThem()
     {
         d = ((int)background.localScale.x - 4)/2;
         cellsNumber = 20 * d;
